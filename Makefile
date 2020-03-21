@@ -1,3 +1,5 @@
+current_dir := $(shell pwd)
+export LD_LIBRARY_PATH := $current_dir:$LD_LIBRARY_PATH
 CC=gcc
 FLAGS=-Wno-implicit-function-declaration
 CFLAGS=-I.
