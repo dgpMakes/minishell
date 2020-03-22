@@ -16,8 +16,6 @@
 int main(int argc, char *argv[])  // [1] original archive, [2] to paste in file (destination)
 {
 	int source_descriptor;		  /*to identify a file that already exists*/
-	DIR *dir;                 /*the destination path*/
-
 	FILE *source_file, *destination_file;
     struct dirent *destination_read;    /*to read the destination path*/
     char count;  /*to read entire path*/
