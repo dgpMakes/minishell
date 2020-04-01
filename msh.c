@@ -60,13 +60,13 @@ int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2
 	struct stat prove_structure; /*to prove the structure of the given arguments*/
 
 	/*checks the command is properly written*/
-	if (argc != 3)
+	if (argc != 3) //RAUL
 	{
 		fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
 		return -1;
 	}
 	
-	if(stat(argv[1],&prove_structure) == 0)
+	if(stat(**argvv[1],&prove_structure) == 0)
 	{
     	if(prove_structure.st_mode & S_IFDIR)
     	{
@@ -74,7 +74,7 @@ int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2
 			return -1;
    		}
 	}
-	if( stat(argv[2],&prove_structure) == 0)
+	if( stat(**argvv[2],&prove_structure) == 0)
 	{
     	if( prove_structure.st_mode & S_IFDIR)
     	{
@@ -84,7 +84,7 @@ int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2
 	}
 
 	/*opens file and addresses it a descriptor*/
-	source_descriptor = open(argv[1], O_RDONLY);
+	source_descriptor = open(**argvv[1], O_RDONLY);
 
 	/*if f_descriptor is -1, the file cannot be opened*/
 	if (source_descriptor == -1)
@@ -94,14 +94,14 @@ int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2
 	}
 
 	/*opens the requested file*/
-	source_file = fopen(argv[1], "r"); //we open in mode reading and check it is correct
+	source_file = fopen(**argvv[1], "r"); //we open in mode reading and check it is correct
 	if(source_file == NULL){
 		fprintf(stderr, "[ERROR] Error opening original file");
 		return -1;
 	}
 
 	/*creates the new file*/
-	destination_file= fopen(argv[2], "w"); //we create the new file and check it is correct
+	destination_file= fopen(**argvv[2], "w"); //we create the new file and check it is correct
 	if(destination_file == NULL){
 		fprintf(stderr, "[ERROR] Error opening the copied file");
 		return -1;
