@@ -2,7 +2,7 @@
 // Write your msh source code here
 
 #include <parser.h>
-#include <stddef.h>			/* NULL */
+#include <stddef.h>		/* NULL */
 #include <sys/types.h>/* Header file for system call open */
 #include <sys/stat.h> /* Defines the structure of data returned by functions fsat(), lstat() and stat() */
 #include <fcntl.h> /* Manipulate file descriptor */
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> /* Header file for system calls read, write y close */
-#include <sys/wait.h>
+#include <wait.h>
 #include <signal.h>
 
 /* Error handling libraries */
