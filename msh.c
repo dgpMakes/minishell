@@ -211,6 +211,13 @@ int main(int argc, char* argv[])
                                 //Fork and exec
                                 print_command(argvv, filev, in_background);
 
+                                //Create a pipe for the child
+                                if(fork() == 0){
+                                    //The child
+                                    execvp(**argvv, *argvv);
+
+                                }
+
                             }
 
                         }
