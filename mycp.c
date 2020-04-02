@@ -72,7 +72,7 @@ int main(int argc, char *argv[])  // [1] original archive, [2] to paste in file 
 	while( ( count = fgetc(source_file) ) != EOF )
       fputc(count, destination_file);
  
-   printf("File copied successfully.\n");
+   printf("[OK] Copy has been successful between <original> and <copied>\n");
  
    fclose(source_file);
    fclose(destination_file);
