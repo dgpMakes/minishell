@@ -55,18 +55,49 @@ void getCompleteCommand(char*** argvv, int num_command) {
 int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
     char count;  /*to read entire path*/
+    struct stat prove_structure; /*to prove the structure of the given arguments*/
+	int source_descriptor;/*to identify a file that already exists*/
+
+    if(stat(*source_string, &prove_structure) == 0)
+        {
+        if(prove_structure.st_mode & S_IFDIR)
+        {
+            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+            continue;
+        }
+    }
+     write(STDOUT_FILENO, "2", strlen("1"));
+
+   if(stat(*destination_string, &prove_structure) == 0)
+    {
+        if(prove_structure.st_mode & S_IFDIR)
+        {
+            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+            continue;
+        }
+    }
+    write(STDOUT_FILENO, "3.14", strlen("1123"));
+
+    source_descriptor = open(*source_string, O_RDONLY); /*opens file and addresses it a descriptor*/
+                
+    /*if f_descriptor is -1, the file cannot be opened*/
+    if (source_descriptor == -1)
+    { 
+        fprintf(stderr, "[ERROR] Error opening original file");
+        return -1;
+    }
+    write(STDOUT_FILENO, "3", strlen("1"));
 
     /*opens the requested file*/
-    FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
+    FILE* source_file = fopen(*source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
         fprintf(stderr, "[ERROR] Error opening original file");
         return -1;
     }
-
     write(STDOUT_FILENO, "4", strlen("1"));
 
     /*creates the new file*/
-    FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
+    FILE* destination_file = fopen(*destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
         fprintf(stderr, "[ERROR] Error opening the copied file");
         return -1;
@@ -181,7 +212,6 @@ int main(int argc, char* argv[])
                             } else if (strcmp(**argvv, "mycp") == 0){//[[mycp],[hola],[adios], NULL]
                                 //Call mycp
 
-                                    struct stat prove_structure; /*to prove the structure of the given arguments*/
 
                                 	/*checks the command is properly written*/
                                     if (count_elements(*argvv) != 3) //RAUL
@@ -190,44 +220,6 @@ int main(int argc, char* argv[])
                                         continue;
                                     }
                                 write(STDOUT_FILENO, "1", strlen("1"));
-
-                                    if(stat(*argvv[1], &prove_structure) == 0)
-                                    {
-                                        if(prove_structure.st_mode & S_IFDIR)
-                                        {
-                                            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-                                            continue;
-                                        }
-                                    }
-
-                                write(STDOUT_FILENO, "2", strlen("1"));
-
-	
-                                    if(stat(*argvv[2], &prove_structure) == 0)
-                                    {
-                                        if( prove_structure.st_mode & S_IFDIR)
-                                        {
-                                            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-                                            continue;
-                                        }
-                                    }
-
-                                write(STDOUT_FILENO, "3.14", strlen("1123"));
-
-                                    
-                                    /*to identify a file that already exists*/
-	                                int source_descriptor;
-
-                                    /*opens file and addresses it a descriptor*/
-                                    source_descriptor = open(*argvv[1], O_RDONLY);
-
-                                    /*if f_descriptor is -1, the file cannot be opened*/
-                                    if (source_descriptor == -1)
-                                    { 
-                                        fprintf(stderr, "[ERROR] Error opening original file");
-                                        continue;
-                                    }
-                                write(STDOUT_FILENO, "3", strlen("1"));
 
                                 mycp(*argvv[1], *argvv[2]);
 
