@@ -26,12 +26,20 @@ char filev[3][64];
 
 //to store the execvp second parameter
 char *argv_execvp[8];
+pid_t child_pid_bg = -1;
+
+
 
 void siginthandler(int param)
 {
 	printf("****  Saliendo del MSH **** \n");
 	//signal(SIGINT, siginthandler);
         exit(0);
+}
+
+void sigchild_handler(int param)
+{
+    printf("Process in background with pid %i just finished \n", (int)child_pid_bg);
 }
 
 /**
@@ -51,9 +59,55 @@ void getCompleteCommand(char*** argvv, int num_command) {
         argv_execvp[i] = argvv[num_command][i];
 }
 
+int ioRedirect(char (*filev)[64]){//
+
+    /*For stdin*/
+    if(filev[0] != NULL){
+        printf("he entrado soy 0\n");
+
+        int fd = open(filev[0], O_RDONLY, 0600);
+        printf("%i is fd of part zero.\nfile0 is %s\nfile1 is %s\nfile2 is %s\n", fd, filev[0], filev[1], filev[2]);
+
+        close(0);
+        /*Safely open*/
+
+        int new_fd = dup(fd);
+        fprintf(stderr, "newfd is %i in part zero\n", new_fd);
+
+        close(fd);
+    }
+
+    /*For stdout*/
+    if(filev[1] != NULL){
+        int fd = open(filev[1], O_RDWR|O_APPEND|O_CREAT, 0600);
+        printf("he entrado soy 1 %i\n", fd);
+
+        close(1);
+
+        /*Safely open*/
+        int new_fd = dup(fd);
+
+        close(fd);
+
+    }
+    
+    /*For stderr*/
+    if(filev[2] != NULL){
+        printf("he entrado soy 2\n");
+
+        int fd = open(filev[2], O_RDWR|O_APPEND|O_CREAT, 0600);
+        close(2);
+        /*Safely open*/
+        int new_fd = dup(fd);
+        close(fd);
+
+    }
+
+}
 
 int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
+    write(STDOUT_FILENO, "1.1", strlen("111"));
     char count;  /*to read entire path*/
     struct stat prove_structure; /*to prove the structure of the given arguments*/
 	int source_descriptor;/*to identify a file that already exists*/
@@ -66,7 +120,6 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
             return -1;
         }
     }
-     write(STDOUT_FILENO, "2", strlen("1"));
 
    if(stat(destination_string, &prove_structure) == 0)
     {
@@ -76,17 +129,15 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
             return -1;
         }
     }
-    write(STDOUT_FILENO, "3.14", strlen("1123"));
 
     source_descriptor = open(source_string, O_RDONLY); /*opens file and addresses it a descriptor*/
                 
     /*if f_descriptor is -1, the file cannot be opened*/
     if (source_descriptor == -1)
     { 
-        fprintf(stderr, "[ERROR] Error opening original file");
+        fprintf(stderr, "[ERROR] Error opening original file: %s\n", strerror(errno));
         return -1;
     }
-    write(STDOUT_FILENO, "3", strlen("1"));
 
     /*opens the requested file*/
     FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
@@ -94,7 +145,6 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         fprintf(stderr, "[ERROR] Error opening original file");
         return -1;
     }
-    write(STDOUT_FILENO, "4", strlen("1"));
 
     /*creates the new file*/
     FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
@@ -102,7 +152,6 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         fprintf(stderr, "[ERROR] Error opening the copied file");
         return -1;
     }
-    write(STDOUT_FILENO, "5", strlen("1"));
 
 	while( ( count = fgetc(source_file) ) != EOF )
       fputc(count, destination_file);
@@ -176,6 +225,8 @@ int main(int argc, char* argv[])
 	    int command_counter = 0;
 		int in_background = 0;
 		signal(SIGINT, siginthandler);
+        signal(SIGCHLD, sigchild_handler);
+
 
 		// Prompt 
 		write(STDERR_FILENO, "MSH>>", strlen("MSH>>"));
@@ -207,20 +258,23 @@ int main(int argc, char* argv[])
 
                             if(strcmp(**argvv, "mycalc") == 0){
                                 //Call mycalc
-                                mycalc(*argvv[1][0], *argvv[2], *argvv[3][0], 0);
+                                mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]), 0);
 
-                            } else if (strcmp(**argvv, "mycp") == 0){//[[mycp],[hola],[adios], NULL]
+                            } else if (strcmp(*argvv[0], "mycp") == 0){//[[mycp],[hola],[adios], NULL]]
                                 //Call mycp
 
 
-                                	/*checks the command is properly written*/
-                                    if (count_elements(*argvv) != 3) //RAUL
-                                    {
-                                        fprintf(stderr,  "as[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-                                        continue;
-                                    }
-                                write(STDOUT_FILENO, "1", strlen("1"));
-                                mycp(*argvv[1], *argvv[2]);
+                                /*checks the command is properly written*/
+                                if (count_elements(*argvv) != 3) //RAUL
+                                {
+                                    fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                                    continue;
+                                }
+     
+
+
+
+                                mycp(argvv[0][1], argvv[0][2]);
 
                             } else {
                                 //Fork and exec
@@ -231,21 +285,27 @@ int main(int argc, char* argv[])
                                 int pid = fork();
                                 if(pid == 0){
                                     //The child
+
+                                    ioRedirect(filev);
+
                                     execvp(**argvv, *argvv);
 
+
                                 } else {
-                                    wait(&pid);
+                                    child_pid_bg = pid;
+
+
+                                    if(!in_background){
+                                        wait(&pid);
+                                    }
+
+
                                     write(STDOUT_FILENO, "done\n", strlen("done"));
                                 }
-
                             }
-
                         }
-
-
-
                 }
-              }
+            }
         }
 	return 0;
 }
