@@ -52,7 +52,7 @@ void getCompleteCommand(char*** argvv, int num_command) {
 }
 
 
-int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2] to paste in file (destination)
+int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
     struct dirent *destination_read;    /*to read the destination path*/
     char count;  /*to read entire path*/
