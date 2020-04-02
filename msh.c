@@ -54,58 +54,8 @@ void getCompleteCommand(char*** argvv, int num_command) {
 
 int mycp(FILE *source_file, FILE *destination_file)  // [1] original archive, [2] to paste in file (destination)
 {
-	int source_descriptor;		  /*to identify a file that already exists*/
     struct dirent *destination_read;    /*to read the destination path*/
     char count;  /*to read entire path*/
-	struct stat prove_structure; /*to prove the structure of the given arguments*/
-
-	/*checks the command is properly written*/
-	if (argc != 3) //RAUL
-	{
-		fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-		return -1;
-	}
-	
-	if(stat(**argvv[1],&prove_structure) == 0)
-	{
-    	if(prove_structure.st_mode & S_IFDIR)
-    	{
-        	fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-			return -1;
-   		}
-	}
-	if( stat(**argvv[2],&prove_structure) == 0)
-	{
-    	if( prove_structure.st_mode & S_IFDIR)
-    	{
-        	fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-			return -1;
-   		}
-	}
-
-	/*opens file and addresses it a descriptor*/
-	source_descriptor = open(**argvv[1], O_RDONLY);
-
-	/*if f_descriptor is -1, the file cannot be opened*/
-	if (source_descriptor == -1)
-	{ 
-		fprintf(stderr, "[ERROR] Error opening original file");
-		return -1;
-	}
-
-	/*opens the requested file*/
-	source_file = fopen(**argvv[1], "r"); //we open in mode reading and check it is correct
-	if(source_file == NULL){
-		fprintf(stderr, "[ERROR] Error opening original file");
-		return -1;
-	}
-
-	/*creates the new file*/
-	destination_file= fopen(**argvv[2], "w"); //we create the new file and check it is correct
-	if(destination_file == NULL){
-		fprintf(stderr, "[ERROR] Error opening the copied file");
-		return -1;
-	}
 
 	while( ( count = fgetc(source_file) ) != EOF )
       fputc(count, destination_file);
@@ -133,6 +83,15 @@ void mycalc(int operand1, char *operator, int operand2, int *Acc){
 		
     }
 
+}
+
+int count_elements(char **argvv){//[asdf],[asdf]
+    int i = 0;
+    for (;argvv[i] != NULL; i++){
+        printf("%s\n",argvv[i]);
+    }
+    printf("%i\n", i);
+    return i;
 }
 
 /**
@@ -203,8 +162,84 @@ int main(int argc, char* argv[])
                                 //Call mycalc
                                 mycalc(*argvv[1][0], *argvv[2], *argvv[3][0], 0);
 
-                            } else if (strcmp(**argvv, "mycp") == 0){
+                            } else if (strcmp(**argvv, "mycp") == 0){//[[mycp],[hola],[adios], NULL]
                                 //Call mycp
+
+                                    struct stat prove_structure; /*to prove the structure of the given arguments*/
+
+                                	/*checks the command is properly written*/
+                                    if (count_elements(*argvv) != 3) //RAUL
+                                    {
+                                        fprintf(stderr,  "as[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                                        continue;
+                                    }
+                                write(STDOUT_FILENO, "1", strlen("1"));
+
+                                    if(stat(*argvv[1], &prove_structure) == 0)
+                                    {
+                                        if(prove_structure.st_mode & S_IFDIR)
+                                        {
+                                            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                                            continue;
+                                        }
+                                    }
+
+                                write(STDOUT_FILENO, "2", strlen("1"));
+
+	
+                                    if(stat(*argvv[2], &prove_structure) == 0)
+                                    {
+                                        if( prove_structure.st_mode & S_IFDIR)
+                                        {
+                                            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                                            continue;
+                                        }
+                                    }
+
+                                write(STDOUT_FILENO, "3.14", strlen("1123"));
+
+                                    
+                                    /*to identify a file that already exists*/
+	                                int source_descriptor;
+
+                                    /*opens file and addresses it a descriptor*/
+                                    source_descriptor = open(*argvv[1], O_RDONLY);
+
+                                    /*if f_descriptor is -1, the file cannot be opened*/
+                                    if (source_descriptor == -1)
+                                    { 
+                                        fprintf(stderr, "[ERROR] Error opening original file");
+                                        continue;
+                                    }
+                                write(STDOUT_FILENO, "3", strlen("1"));
+
+
+                                    /*opens the requested file*/
+                                    FILE* source_file = fopen(*argvv[1], "r"); //we open in mode reading and check it is correct
+                                    if(source_file == NULL){
+                                        fprintf(stderr, "[ERROR] Error opening original file");
+                                        continue;
+                                    }
+
+                                write(STDOUT_FILENO, "4", strlen("1"));
+
+                                    /*creates the new file*/
+                                    FILE* destination_file = fopen(*argvv[2], "w"); //we create the new file and check it is correct
+                                    if(destination_file == NULL){
+                                        fprintf(stderr, "[ERROR] Error opening the copied file");
+                                        continue;
+                                    }
+
+                                write(STDOUT_FILENO, "5", strlen("1"));
+
+
+                                    int result = mycp(source_file, destination_file);
+                                    if(result == 0){
+                                        write(STDOUT_FILENO, "copied", strlen("copied"));
+                                    }
+
+
+
                                 write(STDOUT_FILENO, "coronavirus", strlen("coronavirus"));
 
                             } else {
@@ -212,10 +247,15 @@ int main(int argc, char* argv[])
                                 print_command(argvv, filev, in_background);
 
                                 //Create a pipe for the child
-                                if(fork() == 0){
+
+                                int pid = fork();
+                                if(pid == 0){
                                     //The child
                                     execvp(**argvv, *argvv);
 
+                                } else {
+                                    wait(&pid);
+                                    write(STDOUT_FILENO, "done\n", strlen("done"));
                                 }
 
                             }
