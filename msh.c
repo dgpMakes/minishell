@@ -62,30 +62,23 @@ void getCompleteCommand(char*** argvv, int num_command) {
 int ioRedirect(char filev[3][64]){//
 
     /*For stdin*/
-    if(filev[0] != NULL){
-        printf("he entrado soy 0\n");
-
+    if(strcmp(filev[0], "0") != 0){
         int fd = open(filev[0], O_RDONLY, 0600);
         if(fd==-1){
             printf("error: %s\n",strerror(errno));
         }
-        printf("%i is fd of part zero.\nfile0 is %s\nfile1 is %s\nfile2 is %s\n", fd, filev[0], filev[1], filev[2]);
-
-        close(0);
+        close(STDIN_FILENO);
         /*Safely open*/
 
         int new_fd = dup(fd);
-        fprintf(stderr, "newfd is %i in part zero\n", new_fd);
 
         close(fd);
     }
 
     /*For stdout*/
-    if(filev[1] != NULL){
+    if(strcmp(filev[1], "0") != 0){
         int fd = open(filev[1], O_RDWR|O_APPEND|O_CREAT, 0600);
-        printf("he entrado soy 1 %i\n", fd);
-
-        close(1);
+        close(STDOUT_FILENO);
 
         /*Safely open*/
         int new_fd = dup(fd);
@@ -95,11 +88,9 @@ int ioRedirect(char filev[3][64]){//
     }
     
     /*For stderr*/
-    if(filev[2] != NULL){
-        printf("he entrado soy 2\n");
-
+    if(strcmp(filev[2], "0") != 0){
         int fd = open(filev[2], O_RDWR|O_APPEND|O_CREAT, 0600);
-        close(2);
+        close(STDERR_FILENO);
         /*Safely open*/
         int new_fd = dup(fd);
         close(fd);
@@ -273,25 +264,16 @@ int main(int argc, char* argv[])
                                     fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
                                     continue;
                                 }
-     
-
-
 
                                 mycp(argvv[0][1], argvv[0][2]);
 
                             } else {
-                                //Fork and exec
-                                print_command(argvv, filev, in_background);
-
                                 //Create a pipe for the child
 
                                 int pid = fork();
                                 if(pid == 0){
                                     //The child
-                                    print_command(argvv, filev, in_background);
-
                                     ioRedirect(filev);
-
                                     execvp(**argvv, *argvv);
 
 
@@ -304,7 +286,6 @@ int main(int argc, char* argv[])
                                     }
 
 
-                                    write(STDOUT_FILENO, "done\n", strlen("done"));
                                 }
                             }
                         }
