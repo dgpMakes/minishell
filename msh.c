@@ -34,6 +34,11 @@ void siginthandler(int param)
         exit(0);
 }
 
+void sigchild_handler(int param)
+{
+    printf("Finished\n");
+}
+
 /**
  * Get the command with its parameters for execvp
  * Execute this instruction before run an execvp to obtain the complete command
@@ -176,6 +181,8 @@ int main(int argc, char* argv[])
 	    int command_counter = 0;
 		int in_background = 0;
 		signal(SIGINT, siginthandler);
+        signal(SIGCHLD, sigchild_handler);
+
 
 		// Prompt 
 		write(STDERR_FILENO, "MSH>>", strlen("MSH>>"));
@@ -237,13 +244,8 @@ int main(int argc, char* argv[])
                                     wait(&pid);
                                     write(STDOUT_FILENO, "done\n", strlen("done"));
                                 }
-
                             }
-
                         }
-
-
-
                 }
               }
         }
