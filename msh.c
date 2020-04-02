@@ -59,27 +59,33 @@ void getCompleteCommand(char*** argvv, int num_command) {
         argv_execvp[i] = argvv[num_command][i];
 }
 
-int ioRedirect(char (*filev)[64]){
+int ioRedirect(char (*filev)[64]){//
 
     /*For stdin*/
     if(filev[0] != NULL){
-        int fd = open(filev[0], O_RDONLY, 600);
+        printf("he entrado soy 0\n");
+
+        int fd = open(filev[0], O_RDONLY, 0600);
+        printf("%i is fd of part zero.\nfile0 is %s\nfile1 is %s\nfile2 is %s\n", fd, filev[0], filev[1], filev[2]);
 
         close(0);
         /*Safely open*/
+
         int new_fd = dup(fd);
+        fprintf(stderr, "newfd is %i in part zero\n", new_fd);
+
         close(fd);
     }
 
     /*For stdout*/
     if(filev[1] != NULL){
-        int fd = open(filev[1], O_RDWR|O_APPEND|O_CREAT, 600);
-        printf("%i\n", fd);
+        int fd = open(filev[1], O_RDWR|O_APPEND|O_CREAT, 0600);
+        printf("he entrado soy 1 %i\n", fd);
+
         close(1);
 
         /*Safely open*/
         int new_fd = dup(fd);
-        printf("%i\n", new_fd);
 
         close(fd);
 
@@ -87,7 +93,9 @@ int ioRedirect(char (*filev)[64]){
     
     /*For stderr*/
     if(filev[2] != NULL){
-        int fd = open(filev[2], O_RDWR|O_APPEND|O_CREAT, 600);
+        printf("he entrado soy 2\n");
+
+        int fd = open(filev[2], O_RDWR|O_APPEND|O_CREAT, 0600);
         close(2);
         /*Safely open*/
         int new_fd = dup(fd);
@@ -264,7 +272,6 @@ int main(int argc, char* argv[])
                                 }
      
 
-                                printf("%s\n", argvv[0][1]);
 
 
                                 mycp(argvv[0][1], argvv[0][2]);
@@ -278,8 +285,6 @@ int main(int argc, char* argv[])
                                 int pid = fork();
                                 if(pid == 0){
                                     //The child
-                                    printf("hola");
-                                    fflush( stdout );
 
                                     ioRedirect(filev);
 
