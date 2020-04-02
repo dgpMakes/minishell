@@ -59,13 +59,16 @@ void getCompleteCommand(char*** argvv, int num_command) {
         argv_execvp[i] = argvv[num_command][i];
 }
 
-int ioRedirect(char (*filev)[64]){//
+int ioRedirect(char filev[3][64]){//
 
     /*For stdin*/
     if(filev[0] != NULL){
         printf("he entrado soy 0\n");
 
         int fd = open(filev[0], O_RDONLY, 0600);
+        if(fd==-1){
+            printf("error: %s\n",strerror(errno));
+        }
         printf("%i is fd of part zero.\nfile0 is %s\nfile1 is %s\nfile2 is %s\n", fd, filev[0], filev[1], filev[2]);
 
         close(0);
@@ -285,6 +288,7 @@ int main(int argc, char* argv[])
                                 int pid = fork();
                                 if(pid == 0){
                                     //The child
+                                    print_command(argvv, filev, in_background);
 
                                     ioRedirect(filev);
 
