@@ -57,17 +57,19 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     char count;  /*to read entire path*/
 
     /*opens the requested file*/
-    FILE* source_file = fopen(*source_string, "r"); //we open in mode reading and check it is correct
+    FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
         fprintf(stderr, "[ERROR] Error opening original file");
+        return -1;
     }
 
     write(STDOUT_FILENO, "4", strlen("1"));
 
     /*creates the new file*/
-    FILE* destination_file = fopen(*destination_string, "w"); //we create the new file and check it is correct
+    FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
         fprintf(stderr, "[ERROR] Error opening the copied file");
+        return -1;
     }
     write(STDOUT_FILENO, "5", strlen("1"));
 
@@ -223,7 +225,7 @@ int main(int argc, char* argv[])
                                     if (source_descriptor == -1)
                                     { 
                                         fprintf(stderr, "[ERROR] Error opening original file");
-                                        continue;
+                                        continue;//!!!!!!!!!!!!!!!!!!!!!!!11
                                     }
                                 write(STDOUT_FILENO, "3", strlen("1"));
 
