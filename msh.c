@@ -54,8 +54,22 @@ void getCompleteCommand(char*** argvv, int num_command) {
 
 int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
-    struct dirent *destination_read;    /*to read the destination path*/
     char count;  /*to read entire path*/
+
+    /*opens the requested file*/
+    FILE* source_file = fopen(*source_string, "r"); //we open in mode reading and check it is correct
+    if(source_file == NULL){
+        fprintf(stderr, "[ERROR] Error opening original file");
+    }
+
+    write(STDOUT_FILENO, "4", strlen("1"));
+
+    /*creates the new file*/
+    FILE* destination_file = fopen(*destination_string, "w"); //we create the new file and check it is correct
+    if(destination_file == NULL){
+        fprintf(stderr, "[ERROR] Error opening the copied file");
+    }
+    write(STDOUT_FILENO, "5", strlen("1"));
 
 	while( ( count = fgetc(source_file) ) != EOF )
       fputc(count, destination_file);
@@ -213,34 +227,7 @@ int main(int argc, char* argv[])
                                     }
                                 write(STDOUT_FILENO, "3", strlen("1"));
 
-
-                                    /*opens the requested file*/
-                                    FILE* source_file = fopen(*argvv[1], "r"); //we open in mode reading and check it is correct
-                                    if(source_file == NULL){
-                                        fprintf(stderr, "[ERROR] Error opening original file");
-                                        continue;
-                                    }
-
-                                write(STDOUT_FILENO, "4", strlen("1"));
-
-                                    /*creates the new file*/
-                                    FILE* destination_file = fopen(*argvv[2], "w"); //we create the new file and check it is correct
-                                    if(destination_file == NULL){
-                                        fprintf(stderr, "[ERROR] Error opening the copied file");
-                                        continue;
-                                    }
-
-                                write(STDOUT_FILENO, "5", strlen("1"));
-
-
-                                    int result = mycp(source_file, destination_file);
-                                    if(result == 0){
-                                        write(STDOUT_FILENO, "copied", strlen("copied"));
-                                    }
-
-
-
-                                write(STDOUT_FILENO, "coronavirus", strlen("coronavirus"));
+                                mycp(*argvv[1],*argvv[2]);
 
                             } else {
                                 //Fork and exec
