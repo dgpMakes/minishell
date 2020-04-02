@@ -63,7 +63,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         if(prove_structure.st_mode & S_IFDIR)
         {
             fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-            continue;
+            return -1;
         }
     }
      write(STDOUT_FILENO, "2", strlen("1"));
@@ -73,7 +73,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         if(prove_structure.st_mode & S_IFDIR)
         {
             fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-            continue;
+            return -1;
         }
     }
     write(STDOUT_FILENO, "3.14", strlen("1123"));
@@ -220,7 +220,6 @@ int main(int argc, char* argv[])
                                         continue;
                                     }
                                 write(STDOUT_FILENO, "1", strlen("1"));
-
                                 mycp(*argvv[1], *argvv[2]);
 
                             } else {
