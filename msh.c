@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
                                     }
                                 write(STDOUT_FILENO, "3", strlen("1"));
 
-                                mycp(*argvv[1],*argvv[2]);
+                                mycp(*argvv[1], *argvv[2]);
 
                             } else {
                                 //Fork and exec
