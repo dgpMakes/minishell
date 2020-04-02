@@ -58,7 +58,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     struct stat prove_structure; /*to prove the structure of the given arguments*/
 	int source_descriptor;/*to identify a file that already exists*/
 
-    if(stat(*source_string, &prove_structure) == 0)
+    if(stat(source_string, &prove_structure) == 0)
         {
         if(prove_structure.st_mode & S_IFDIR)
         {
@@ -68,7 +68,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     }
      write(STDOUT_FILENO, "2", strlen("1"));
 
-   if(stat(*destination_string, &prove_structure) == 0)
+   if(stat(destination_string, &prove_structure) == 0)
     {
         if(prove_structure.st_mode & S_IFDIR)
         {
@@ -78,7 +78,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     }
     write(STDOUT_FILENO, "3.14", strlen("1123"));
 
-    source_descriptor = open(*source_string, O_RDONLY); /*opens file and addresses it a descriptor*/
+    source_descriptor = open(source_string, O_RDONLY); /*opens file and addresses it a descriptor*/
                 
     /*if f_descriptor is -1, the file cannot be opened*/
     if (source_descriptor == -1)
@@ -89,7 +89,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     write(STDOUT_FILENO, "3", strlen("1"));
 
     /*opens the requested file*/
-    FILE* source_file = fopen(*source_string, "r"); //we open in mode reading and check it is correct
+    FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
         fprintf(stderr, "[ERROR] Error opening original file");
         return -1;
@@ -97,7 +97,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     write(STDOUT_FILENO, "4", strlen("1"));
 
     /*creates the new file*/
-    FILE* destination_file = fopen(*destination_string, "w"); //we create the new file and check it is correct
+    FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
         fprintf(stderr, "[ERROR] Error opening the copied file");
         return -1;
