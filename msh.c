@@ -26,6 +26,9 @@ char filev[3][64];
 
 //to store the execvp second parameter
 char *argv_execvp[8];
+pid_t child_pid_bg = -1;
+
+
 
 void siginthandler(int param)
 {
@@ -36,7 +39,7 @@ void siginthandler(int param)
 
 void sigchild_handler(int param)
 {
-    printf("Finished\n");
+    printf("Process in background with pid %i just finished \n", (int)child_pid_bg);
 }
 
 /**
@@ -56,6 +59,43 @@ void getCompleteCommand(char*** argvv, int num_command) {
         argv_execvp[i] = argvv[num_command][i];
 }
 
+int ioRedirect(char (*filev)[64]){
+
+    /*For stdin*/
+    if(filev[0] != NULL){
+        int fd = open(filev[0], O_RDONLY, 600);
+
+        close(0);
+        /*Safely open*/
+        int new_fd = dup(fd);
+        close(fd);
+    }
+
+    /*For stdout*/
+    if(filev[1] != NULL){
+        int fd = open(filev[1], O_RDWR|O_APPEND|O_CREAT, 600);
+        printf("%i\n", fd);
+        close(1);
+
+        /*Safely open*/
+        int new_fd = dup(fd);
+        printf("%i\n", new_fd);
+
+        close(fd);
+
+    }
+    
+    /*For stderr*/
+    if(filev[2] != NULL){
+        int fd = open(filev[2], O_RDWR|O_APPEND|O_CREAT, 600);
+        close(2);
+        /*Safely open*/
+        int new_fd = dup(fd);
+        close(fd);
+
+    }
+
+}
 
 int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
@@ -219,7 +259,7 @@ int main(int argc, char* argv[])
                                 /*checks the command is properly written*/
                                 if (count_elements(*argvv) != 3) //RAUL
                                 {
-                                    fprintf(stderr,  "as[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                                    fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
                                     continue;
                                 }
      
@@ -238,16 +278,29 @@ int main(int argc, char* argv[])
                                 int pid = fork();
                                 if(pid == 0){
                                     //The child
+                                    printf("hola");
+                                    fflush( stdout );
+
+                                    ioRedirect(filev);
+
                                     execvp(**argvv, *argvv);
 
+
                                 } else {
-                                    wait(&pid);
+                                    child_pid_bg = pid;
+
+
+                                    if(!in_background){
+                                        wait(&pid);
+                                    }
+
+
                                     write(STDOUT_FILENO, "done\n", strlen("done"));
                                 }
                             }
                         }
                 }
-              }
+            }
         }
 	return 0;
 }
