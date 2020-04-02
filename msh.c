@@ -233,10 +233,10 @@ int main(int argc, char* argv[])
                                 write(STDOUT_FILENO, "5", strlen("1"));
 
 
-                                    int result = mycp(source_file, destination_file);
+                                    /*int result = mycp(source_file, destination_file);
                                     if(result == 0){
                                         write(STDOUT_FILENO, "copied", strlen("copied"));
-                                    }
+                                    }*/
 
 
 
