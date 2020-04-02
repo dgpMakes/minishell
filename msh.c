@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
                                     if (source_descriptor == -1)
                                     { 
                                         fprintf(stderr, "[ERROR] Error opening original file");
-                                        continue;//!!!!!!!!!!!!!!!!!!!!!!!11
+                                        continue;
                                     }
                                 write(STDOUT_FILENO, "3", strlen("1"));
 
