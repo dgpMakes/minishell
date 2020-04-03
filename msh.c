@@ -145,42 +145,102 @@ int main(int argc, char* argv[])
 
 
 
-void beautifulPipe(char ***argvv, int currentPipe, int totalPipes);
+void beautifulPipe(char ***argvv, int currentPipe, int totalPipes,  int nextPipe);
+
 int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_counter){
 
-    beautifulPipe(argvv, 0, command_counter);
+    //Create a secur
+    int stdi = dup(0);
+    int stdo = dup(1);
+    int stde = dup(2);
+    ioRedirect(filev);
+ 
+
+    beautifulPipe(argvv, 0, command_counter, 0);
 
     if(in_background == 0){
-        printf("waiting\n");
         while(wait(NULL) > 0);
     }
-    printf("do not wait\n");
 
+    close(0);
+    dup(stdi);
+    close(1);
+    dup(stdo);
+    close(2);
+    dup(stde);
+    close(stdi);
+    close(stdo);
+    close(stde);
 
-    return 1;
+    return 1;  
 }
 
-void beautifulPipe(char ***argvv, int currentPipe, int totalPipes){
+void beautifulPipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe){
+
+    int pip[2];
+    pipe(pip);
 
     //Base case
     if(currentPipe == totalPipes){
+        close(nextPipe);
+        close(pip[0]);
+        close(pip[1]);
         return;
     }
 
     int pid = fork();
-    if(pid == 0){
-        //Child
+    if(pid == 0){//Child
+            
+        //The first process
+        if(currentPipe == 0){
+            close(STDOUT_FILENO);
+            dup(pip[1]);
+            close(pip[1]);
+            close(pip[0]);
+        }
+        //The last process
+        else if(currentPipe == totalPipes - 1){
+            close(STDIN_FILENO);
+            dup(nextPipe);
+
+            //No need to create more pipes
+            close(pip[0]);
+            close(pip[1]);
+
+
+
+        }
+        //The general case
+        else {
+
+            //Stablish output using the created pipe
+            close(STDOUT_FILENO);
+            dup(pip[1]);
+            close(pip[1]);
+            close(pip[0]);
+
+            //Stablish the input using the passed pipe
+            close(STDIN_FILENO);
+            dup(nextPipe);
+            close(nextPipe);
+
+        }
         
+        //Launch the process
         int result = execvp(argvv[currentPipe][0], argvv[currentPipe]);
         if(result == -1){
             fprintf(stderr, "[Error executing the pipe]: %s\n", strerror(errno));
         }
 
     } else {
-        //Parent
-        beautifulPipe(argvv, currentPipe + 1, totalPipes);
-    }
+        //Parent does no longer need the pipe
+        //Discard the first interation
+        if (currentPipe != 0)
+            close(nextPipe);
 
+        close(pip[1]);
+        beautifulPipe(argvv, currentPipe + 1, totalPipes, pip[0]);
+    }
 }
 
 
@@ -380,6 +440,7 @@ void sigchild_handler(int param)
     //Wait for any child
     //int pid = wait(NULL);
     //printf("Process in background with pid %i just finished \n", pid);
+	//write(STDOUT_FILENO, "MSH>>", strlen("MSH>>"));
 }
 
 
