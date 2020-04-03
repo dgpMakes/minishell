@@ -27,10 +27,10 @@ void mycalc(int operand1, char *operator, int operand2);
 //Self made functions
 int ioRedirect(char filev[3][64]);
 int createSimpleProcess(char ***argvv, char filev[3][64], int in_background);
-int nicePipe(char ***argvv, char filev[3][64], int in_background);
+int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_counter);
 
 //Helper function
-int count_elements(char **argvv);
+int count_command_arguments(char **argvv);
 
 // Redirection files
 char filev[3][64];
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 
 
 		// Prompt 
-		write(STDERR_FILENO, "MSH>>", strlen("MSH>>"));
+		write(STDOUT_FILENO, "MSH>>", strlen("MSH>>"));
 
 		// Get command
         //********** DO NOT MODIFY THIS PART. IT DISTINGUISH BETWEEN NORMAL/CORRECTION MODE***************
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         if (strcmp(*argvv[0], "mycp") == 0 && command_counter == 1) {//[[mycp],[hola],[adios], NULL]]
 
             /*checks the command is properly written*/
-            if (count_elements(*argvv) != 3) {
+            if (count_command_arguments(*argvv) != 3) {
                 fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
                 continue;
             }
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
         //Several processess with pipes
         if(command_counter > 1){
-            nicePipe(argvv, filev, in_background);
+            nicePipe(argvv, filev, in_background, command_counter);
         }
         
     }
@@ -145,10 +145,42 @@ int main(int argc, char* argv[])
 
 
 
+void beautifulPipe(char ***argvv, int currentPipe, int totalPipes);
+int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_counter){
+
+    beautifulPipe(argvv, 0, command_counter);
+
+    if(in_background == 0){
+        while(wait(NULL));
+        printf("waiting\n");
+    }
+    printf("do not wait\n");
 
 
-int nicePipe(char ***argvv, char filev[3][64], int in_background){
     return 1;
+}
+
+void beautifulPipe(char ***argvv, int currentPipe, int totalPipes){
+
+    //Base case
+    if(currentPipe == totalPipes){
+        return;
+    }
+
+    int pid = fork();
+    if(pid == 0){
+        //Child
+        
+        int result = execvp(argvv[currentPipe][0], argvv[currentPipe]);
+        if(result == -1){
+            fprintf(stderr, "[Error executing the pipe]: %s\n", strerror(errno));
+        }
+
+    } else {
+        //Parent
+        beautifulPipe(argvv, currentPipe + 1, totalPipes);
+    }
+
 }
 
 
@@ -301,7 +333,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
 
 
 //Helper function
-int count_elements(char **argvv){//[asdf],[asdf]
+int count_command_arguments(char **argvv){//[asdf],[asdf]
     int i = 0;
     for (;argvv[i] != NULL; i++){
     }
@@ -320,7 +352,7 @@ void siginthandler(int param)
 void sigchild_handler(int param)
 {
     //Wait for any child
-    int pid = wait(NULL);
+    //int pid = wait(NULL);
     //printf("Process in background with pid %i just finished \n", pid);
 }
 
