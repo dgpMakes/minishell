@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> /* Header file for system calls read, write y close */
-#include <wait.h>
 #include <signal.h>
 
 /* Error handling libraries */
@@ -276,21 +275,21 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     /*opens the requested file*/
     FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
-        fprintf(stderr, "[ERROR] Error opening original file");
+        fprintf(stderr, "[ERROR] Error opening original file: %s\n", strerror(errno));
         return -1;
     }
 
     /*creates the new file*/
     FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
-        fprintf(stderr, "[ERROR] Error opening the copied file");
+        fprintf(stderr, "[ERROR] Error opening copied file: %s\n", strerror(errno));
         return -1;
     }
 
 	while( ( count = fgetc(source_file) ) != EOF )
     fputc(count, destination_file);
  
-    printf("File copied successfully.\n");
+    printf("[OK] Copy has been successful between %s and %s.\n", source_string, destination_string);
  
     fclose(source_file);
     fclose(destination_file);
