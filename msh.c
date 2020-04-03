@@ -49,8 +49,8 @@ int main(int argc, char* argv[])
     int executed_cmd_lines = -1;
     char *cmd_line = NULL;
     char *cmd_lines[10];
-    const char storeAcc [100];
-    //setenv(const char *Acc, storeAcc,1);
+    
+     setenv("Acc", "0",1);
 
     if (!isatty(STDIN_FILENO)) {
         cmd_line = (char*)malloc(100);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
             }
 
             mycp(argvv[0][1], argvv[0][2]);
-            
+            continue;
         }
 
         //Simple process
@@ -192,7 +192,10 @@ int createSimpleProcess(char ***argvv, char filev[3][64], int in_background){
         case 0:
             //The child
             ioRedirect(filev);
-            execvp(**argvv, *argvv);
+            if(execvp(**argvv, *argvv) == -1)
+            {
+                perror("Error executing fork");
+            }
             break;
         case -1:
             //Error
@@ -218,18 +221,27 @@ int ioRedirect(char filev[3][64]){
         close(STDIN_FILENO);
         /*Safely open*/
 
+        
         int new_fd = dup(fd);
-
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
         close(fd);
     }
 
     /*For stdout*/
     if(strcmp(filev[1], "0") != 0){
         int fd = open(filev[1], O_RDWR|O_TRUNC|O_CREAT, 0600);
+        if(fd==-1){
+            printf("error: %s\n",strerror(errno));
+        }
         close(STDOUT_FILENO);
 
         /*Safely open*/
         int new_fd = dup(fd);
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
 
         close(fd);
 
@@ -238,9 +250,15 @@ int ioRedirect(char filev[3][64]){
     /*For stderr*/
     if(strcmp(filev[2], "0") != 0){
         int fd = open(filev[2], O_RDWR|O_TRUNC|O_CREAT, 0600);
+        if(fd==-1){
+            printf("error: %s\n",strerror(errno));
+        }
         close(STDERR_FILENO);
         /*Safely open*/
         int new_fd = dup(fd);
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
         close(fd);
 
     }
@@ -254,22 +272,28 @@ int ioRedirect(char filev[3][64]){
 //Self implemented functions
 
 void mycalc(int operand1, char *operator, int operand2){
-    // int value = atoi(getenv("Acc"));
-    // int result;
-    // if (strcmp(operator, "mod") == 0){
-    //     result = operand1 % operand2;
-    //     int aux = operand1/operand2;
-    //     printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
-    // } else if(strcmp(operator,"add")==0){
-    //     result = operand1 + operand2;
-    //     value += result;
-    //     sprintf(Acc,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+    int value = atoi(getenv("Acc"));
+    int result;
+    char random_Array[100];
+    char random_value[100];
+    if (strcmp(operator, "mod") == 0){
+        result = operand1 % operand2;
+        int aux = operand1/operand2;
+        sprintf(random_Array,"[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
+        printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
+    } else if(strcmp(operator,"add")==0){
+        result = operand1 + operand2;
+        value += result;
+        printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        sprintf(random_Array,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        sprintf(random_value,"%d",value);
+        setenv("Acc",random_value,1);
 
 
-    // }else{
-    //     fprintf(Acc, stderr, "[ERROR] Error opening the copied file");
+    }else{
+        fprintf(stderr, "[ERROR] The structure of the command is <operand1> <add/mod> <operand>\n");
 
-    // }
+    }
 
 }
 
