@@ -23,7 +23,7 @@ void siginthandler(int param);
 
 //Built-in shell functions
 int mycp(char *source_string, char *destination_string);
-void mycalc(int operand1, char *operator, int operand2, int *Acc);
+void mycalc(int operand1, char *operator, int operand2);
 
 //Self made functions
 int ioRedirect(char filev[3][64]);
@@ -50,6 +50,8 @@ int main(int argc, char* argv[])
     int executed_cmd_lines = -1;
     char *cmd_line = NULL;
     char *cmd_lines[10];
+    const char storeAcc [100];
+    setenv(const char *Acc, storeAcc,1);
 
     if (!isatty(STDIN_FILENO)) {
         cmd_line = (char*)malloc(100);
@@ -108,14 +110,12 @@ int main(int argc, char* argv[])
        
         // Mycalc function
         if(strcmp(**argvv, "mycalc") == 0 && command_counter == 1) {
-            //Call mycalc
             mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]), 0);
             continue;
         }
 
         //Mycp function
         if (strcmp(*argvv[0], "mycp") == 0 && command_counter == 1) {//[[mycp],[hola],[adios], NULL]]
-            //Call mycp
 
             /*checks the command is properly written*/
             if (count_elements(*argvv) != 3) {
@@ -124,15 +124,16 @@ int main(int argc, char* argv[])
             }
 
             mycp(argvv[0][1], argvv[0][2]);
+            
         }
 
-
+        //Simple process
         if(command_counter == 1){
             createSimpleProcess(argvv, filev, in_background);
             continue;
         }
 
-        
+        //Several processess with pipes
         if(command_counter > 1){
             nicePipe(argvv, filev, in_background);
         }
@@ -164,6 +165,7 @@ int createSimpleProcess(char ***argvv, char filev[3][64], int in_background){
             break;
         case -1:
             //Error
+            perror("Error creating fork");
             break;
         default:
             //Parent
@@ -220,8 +222,8 @@ int ioRedirect(char filev[3][64]){
 
 //Self implemented functions
 
-void mycalc(int operand1, char *operator, int operand2, int *Acc){
-
+void mycalc(int operand1, char *operator, int operand2){
+    int value=atoi(getenv(Acc));
     int result;
     if (strcmp(operator, "mod") == 0){
         result = operand1 % operand2;
@@ -229,15 +231,16 @@ void mycalc(int operand1, char *operator, int operand2, int *Acc){
         printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
     } else if(strcmp(operator,"add")==0){
         result = operand1 + operand2;
-        *Acc += result;
-        printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, *Acc);
+        value += result;
+        sprintf(Acc,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+
+
     }else{
         fprintf(stderr, "[ERROR] Error opening the copied file");
-		
+
     }
 
 }
-
 
 
 int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
