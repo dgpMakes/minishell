@@ -160,7 +160,10 @@ int createSimpleProcess(char ***argvv, char filev[3][64], int in_background){
         case 0:
             //The child
             ioRedirect(filev);
-            execvp(**argvv, *argvv);
+            if(execvp(**argvv, *argvv) == -1)
+            {
+                perror("Error executing fork");
+            }
             break;
         case -1:
             //Error
@@ -186,18 +189,27 @@ int ioRedirect(char filev[3][64]){
         close(STDIN_FILENO);
         /*Safely open*/
 
+        
         int new_fd = dup(fd);
-
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
         close(fd);
     }
 
     /*For stdout*/
     if(strcmp(filev[1], "0") != 0){
         int fd = open(filev[1], O_RDWR|O_TRUNC|O_CREAT, 0600);
+        if(fd==-1){
+            printf("error: %s\n",strerror(errno));
+        }
         close(STDOUT_FILENO);
 
         /*Safely open*/
         int new_fd = dup(fd);
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
 
         close(fd);
 
@@ -206,9 +218,15 @@ int ioRedirect(char filev[3][64]){
     /*For stderr*/
     if(strcmp(filev[2], "0") != 0){
         int fd = open(filev[2], O_RDWR|O_TRUNC|O_CREAT, 0600);
+        if(fd==-1){
+            printf("error: %s\n",strerror(errno));
+        }
         close(STDERR_FILENO);
         /*Safely open*/
         int new_fd = dup(fd);
+        if(new_fd == -1){
+            perror("Error duplicating");
+        }
         close(fd);
 
     }
