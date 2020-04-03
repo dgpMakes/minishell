@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
        
         // Mycalc function
         if(strcmp(**argvv, "mycalc") == 0 && command_counter == 1) {
-            mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]), 0);
+            mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]));
             continue;
         }
 
@@ -259,7 +259,7 @@ void mycalc(int operand1, char *operator, int operand2){
 
 
     }else{
-        fprintf(stderr, "[ERROR] The structure of the command is <operand1> <add/mod> <operand>");
+        fprintf(stderr, "[ERROR] The structure of the command is <operand1> <add/mod> <operand>\n");
 
     }
 
