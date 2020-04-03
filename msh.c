@@ -49,8 +49,8 @@ int main(int argc, char* argv[])
     int executed_cmd_lines = -1;
     char *cmd_line = NULL;
     char *cmd_lines[10];
-    const char storeAcc [100];
-    setenv(const char *Acc, storeAcc,1);
+    
+     setenv("Acc", "0",1);
 
     if (!isatty(STDIN_FILENO)) {
         cmd_line = (char*)malloc(100);
@@ -240,16 +240,22 @@ int ioRedirect(char filev[3][64]){
 //Self implemented functions
 
 void mycalc(int operand1, char *operator, int operand2){
-    int value=atoi(getenv(Acc));
+    int value = atoi(getenv("Acc"));
     int result;
+    char random_Array[100];
+    char random_value[100];
     if (strcmp(operator, "mod") == 0){
         result = operand1 % operand2;
         int aux = operand1/operand2;
+        sprintf(random_Array,"[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
         printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
     } else if(strcmp(operator,"add")==0){
         result = operand1 + operand2;
         value += result;
-        sprintf(Acc,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        sprintf(random_Array,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        sprintf(random_value,"%d",value);
+        setenv("Acc",random_value,1);
 
 
     }else{
