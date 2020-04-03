@@ -151,8 +151,8 @@ int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_co
     beautifulPipe(argvv, 0, command_counter);
 
     if(in_background == 0){
-        while(wait(NULL));
         printf("waiting\n");
+        while(wait(NULL) > 0);
     }
     printf("do not wait\n");
 
