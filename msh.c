@@ -259,7 +259,7 @@ void mycalc(int operand1, char *operator, int operand2){
 
 
     }else{
-        fprintf(stderr, "[ERROR] Error opening the copied file");
+        fprintf(stderr, "[ERROR] The structure of the command is <operand1> <add/mod> <operand>");
 
     }
 
