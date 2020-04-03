@@ -334,20 +334,20 @@ int ioRedirect(char filev[3][64]){
 void mycalc(int operand1, char *operator, int operand2){
     int value = atoi(getenv("Acc"));
     int result;
-    //char random_Array[30];
+    char random_Array[30];
     char random_value[100];
     if (strcmp(operator, "mod") == 0){
         result = operand1 % operand2;
         int aux = operand1/operand2;
-        //sprintf(random_Array,"[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
-        //write(1,random_Array,30);
-        printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
+        sprintf(random_Array,"[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
+        write(1,random_Array,30);
+        //printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
     } else if(strcmp(operator,"add")==0){
         result = operand1 + operand2;
         value += result;
-        printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
-        //sprintf(random_Array,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
-        //write(1,random_Array,30);
+        //printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        sprintf(random_Array,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        write(1,random_Array,30);
         sprintf(random_value,"%d",value);
         setenv("Acc",random_value,1);
 
