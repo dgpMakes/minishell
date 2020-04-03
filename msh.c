@@ -17,17 +17,18 @@
 #define MAX_COMMANDS 8
 
 //Singal handlers
-void sigchild_handler(int param);
-void siginthandler(int param);
+void sigchld_handler(int param);
+void sigint_handler(int param);
 
 //Built-in shell functions
 int mycp(char *source_string, char *destination_string);
 void mycalc(int operand1, char *operator, int operand2);
 
-//Self made functions
-int ioRedirect(char filev[3][64]);
-int createSimpleProcess(char ***argvv, char filev[3][64], int in_background);
-int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_counter);
+//Functions to organise code
+int io_redirect(char filev[3][64]);
+int create_simple_process(char ***argvv, char filev[3][64], int in_background);
+int create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter);
+void recursive_pipe(char ***argvv, int currentPipe, int totalPipes,  int nextPipe);
 
 //Helper function
 int count_command_arguments(char **argvv);
@@ -39,7 +40,7 @@ char filev[3][64];
 char *argv_execvp[8];
 
 
-/**
+/*
  * Main sheell  Loop  
  */
 int main(int argc, char* argv[])
@@ -50,7 +51,6 @@ int main(int argc, char* argv[])
     char *cmd_line = NULL;
     char *cmd_lines[10];
     
-     setenv("Acc", "0",1);
 
     if (!isatty(STDIN_FILENO)) {
         cmd_line = (char*)malloc(100);
@@ -65,7 +65,8 @@ int main(int argc, char* argv[])
     }
 
     /*********************************/
-
+    
+    setenv("Acc", "0", 1);
     int num_commands;
     char ***argvv = NULL; 
 
@@ -76,13 +77,12 @@ int main(int argc, char* argv[])
 	    int command_counter = 0;
         int in_background = 0;
 
-
-		signal(SIGINT, siginthandler);
-        signal(SIGCHLD, sigchild_handler);
-
+        //Set signal handler functions
+		signal(SIGINT, sigint_handler);
+        signal(SIGCHLD, sigchld_handler);
 
 		// Prompt 
-		write(STDOUT_FILENO, "MSH>>", strlen("MSH>>"));
+		write(STDERR_FILENO, "MSH>>", strlen("MSH>>"));
 
 		// Get command
         //********** DO NOT MODIFY THIS PART. IT DISTINGUISH BETWEEN NORMAL/CORRECTION MODE***************
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 
             /*checks the command is properly written*/
             if (count_command_arguments(*argvv) != 3) {
-                fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+                fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
                 continue;
             }
 
@@ -128,13 +128,13 @@ int main(int argc, char* argv[])
 
         //Simple process
         if(command_counter == 1){
-            createSimpleProcess(argvv, filev, in_background);
+            create_simple_process(argvv, filev, in_background);
             continue;
         }
 
         //Several processess with pipes
         if(command_counter > 1){
-            nicePipe(argvv, filev, in_background, command_counter);
+            create_pipes(argvv, filev, in_background, command_counter);
         }
         
     }
@@ -144,24 +144,27 @@ int main(int argc, char* argv[])
 }
 
 
+//Functions
 
-void beautifulPipe(char ***argvv, int currentPipe, int totalPipes,  int nextPipe);
+int create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter){
 
-int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_counter){
-
-    //Create a secur
+    //Create a copy of the file descriptors to later raet
     int stdi = dup(0);
     int stdo = dup(1);
     int stde = dup(2);
-    ioRedirect(filev);
+
+    //File redirection in pipes
+    io_redirect(filev);
  
+    //Start the recursive pipe function
+    recursive_pipe(argvv, 0, command_counter, 0);
 
-    beautifulPipe(argvv, 0, command_counter, 0);
-
+    //If in background, wait for every process in the pipe to finish
     if(in_background == 0){
         while(wait(NULL) > 0);
     }
 
+    //Restore state to attach to tty before creating pipes
     close(0);
     dup(stdi);
     close(1);
@@ -175,7 +178,7 @@ int nicePipe(char ***argvv, char filev[3][64], int in_background, int command_co
     return 1;  
 }
 
-void beautifulPipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe){
+void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe){
 
     int pip[2];
     pipe(pip);
@@ -207,8 +210,6 @@ void beautifulPipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe)
             close(pip[0]);
             close(pip[1]);
 
-
-
         }
         //The general case
         else {
@@ -239,19 +240,19 @@ void beautifulPipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe)
             close(nextPipe);
 
         close(pip[1]);
-        beautifulPipe(argvv, currentPipe + 1, totalPipes, pip[0]);
+        recursive_pipe(argvv, currentPipe + 1, totalPipes, pip[0]);
     }
 }
 
 
-int createSimpleProcess(char ***argvv, char filev[3][64], int in_background){
+int create_simple_process(char ***argvv, char filev[3][64], int in_background) {
 
     //Create a pipe for the child
     int pid;
     switch(pid = fork()){
         case 0:
             //The child
-            ioRedirect(filev);
+            io_redirect(filev);
             if(execvp(**argvv, *argvv) == -1)
             {
                 perror("Error executing fork");
@@ -270,55 +271,43 @@ int createSimpleProcess(char ***argvv, char filev[3][64], int in_background){
 }
 
 
-int ioRedirect(char filev[3][64]){
+int io_redirect(char filev[3][64]) {
 
     /*For stdin*/
-    if(strcmp(filev[0], "0") != 0){
-        int fd = open(filev[0], O_RDONLY, 0600);
-        if(fd==-1){
-            printf("error: %s\n",strerror(errno));
-        }
-        close(STDIN_FILENO);
-        /*Safely open*/
+    if(strcmp(filev[0], "0") != 0) {
 
+        //Open the file
+        int fd = open(filev[0], O_RDONLY, 0600);
+        if(fd == -1) printf("error: %s\n",strerror(errno));
         
-        int new_fd = dup(fd);
-        if(new_fd == -1){
-            perror("Error duplicating");
-        }
+        /*Safely attach the file to stdin*/
+        close(STDIN_FILENO);
+        if(dup(fd) == -1) perror("Error duplicating");
         close(fd);
     }
 
     /*For stdout*/
-    if(strcmp(filev[1], "0") != 0){
+    if(strcmp(filev[1], "0") != 0) {
+
+        //Open file to write to it
         int fd = open(filev[1], O_RDWR|O_TRUNC|O_CREAT, 0600);
-        if(fd==-1){
-            printf("error: %s\n",strerror(errno));
-        }
+        if(fd == -1) printf("Error: %s\n",strerror(errno));
+
+        /*Safely attach the stdout to the file to stdin*/
         close(STDOUT_FILENO);
-
-        /*Safely open*/
-        int new_fd = dup(fd);
-        if(new_fd == -1){
-            perror("Error duplicating");
-        }
-
+        if(dup(fd) == -1) perror("Error duplicating");
         close(fd);
 
     }
     
     /*For stderr*/
-    if(strcmp(filev[2], "0") != 0){
+    if(strcmp(filev[2], "0") != 0) {
         int fd = open(filev[2], O_RDWR|O_TRUNC|O_CREAT, 0600);
-        if(fd==-1){
-            printf("error: %s\n",strerror(errno));
-        }
+        if(fd == -1) printf("error: %s\n",strerror(errno));
+        
+        /*Safely attach the stdout to the file to stdin*/
         close(STDERR_FILENO);
-        /*Safely open*/
-        int new_fd = dup(fd);
-        if(new_fd == -1){
-            perror("Error duplicating");
-        }
+        if(dup(fd) == -1) perror("Error duplicating");
         close(fd);
 
     }
@@ -331,30 +320,31 @@ int ioRedirect(char filev[3][64]){
 
 //Self implemented functions
 
-void mycalc(int operand1, char *operator, int operand2){
+void mycalc(int operand1, char *operator, int operand2) {
+
     int value = atoi(getenv("Acc"));
     int result;
-    char random_Array[30];
-    char random_value[100];
-    if (strcmp(operator, "mod") == 0){
+    char acc_value[100];
+
+    if (strcmp(operator, "mod") == 0) {
+
         result = operand1 % operand2;
-        int aux = operand1/operand2;
-        sprintf(random_Array,"[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
-        write(1,random_Array,30);
-        //printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
-    } else if(strcmp(operator,"add")==0){
+        int aux = operand1 / operand2;
+        fprintf(stderr, "[OK] %d %% %d = %d * %d + %d\n", operand1, operand2, operand2, aux, result);
+
+    } else if (strcmp(operator, "add") == 0) {
+
+        //Increase environment variable
         result = operand1 + operand2;
         value += result;
-        //printf("[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
-        sprintf(random_Array,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
-        write(1,random_Array,30);
-        sprintf(random_value,"%d",value);
-        setenv("Acc",random_value,1);
+        sprintf(acc_value, "%d", value);
+        setenv("Acc", acc_value, 1);
 
-
-    }else{
-        fprintf(stderr, "[ERROR] The structure of the command is <operand1> <add/mod> <operand>\n");
-
+        //Print the result
+        fprintf(stderr, "[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+        
+    } else {
+        printf("[ERROR] The structure of the command is  <operand 1> <add/mod> <operand 2>\n");
     }
 
 }
@@ -370,7 +360,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     {
         if(prove_structure.st_mode & S_IFDIR)
         {
-            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+            fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
             return -1;
         }
     }
@@ -379,7 +369,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
    {
         if(prove_structure.st_mode & S_IFDIR)
         {
-            fprintf(stderr,  "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
+            fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
             return -1;
         }
     }
@@ -396,21 +386,21 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     /*opens the requested file*/
     FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
-        fprintf(stderr, "[ERROR] Error opening original file: %s\n", strerror(errno));
+        fprintf(stdout, "[ERROR] Error opening original file: %s\n", strerror(errno));
         return -1;
     }
 
     /*creates the new file*/
     FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
-        fprintf(stderr, "[ERROR] Error opening copied file: %s\n", strerror(errno));
+        fprintf(stdout, "[ERROR] Error opening copied file: %s\n", strerror(errno));
         return -1;
     }
 
 	while( ( count = fgetc(source_file) ) != EOF )
     fputc(count, destination_file);
  
-    printf("[OK] Copy has been successful between %s and %s.\n", source_string, destination_string);
+    printf("[OK] Copy has been successful between %s and %s\n", source_string, destination_string);
  
     fclose(source_file);
     fclose(destination_file);
@@ -428,15 +418,13 @@ int count_command_arguments(char **argvv){//[asdf],[asdf]
 
 
 //Signal handler functions
-void siginthandler(int param)
-{
-	printf("****  Saliendo del MSH **** \n");
+void sigint_handler(int param) {
+	printf("****  Exiting MSH ****\n");
 	//signal(SIGINT, siginthandler);
     exit(0);
 }
 
-void sigchild_handler(int param)
-{
+void sigchld_handler(int param) {
     //Wait for any child
     //int pid = wait(NULL);
     //printf("Process in background with pid %i just finished \n", pid);
@@ -444,8 +432,7 @@ void sigchild_handler(int param)
 }
 
 
-//Shitty Unused function
-
+//Unused function
 /**
  * Get the command with its parameters for execvp
  * Execute this instruction before run an execvp to obtain the complete command

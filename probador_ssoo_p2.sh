@@ -527,10 +527,10 @@ echo "Nota: $fnota"
 echo $fnota > ../nota.txt
 #cat excel
 
-rm -fr foo.txt test* excel tmp/msh.c salida_msh time* pwd1 pwd2*
+#rm -fr foo.txt test* excel tmp/msh.c salida_msh time* pwd1 pwd2*
 
 #salimos del directorio
 cd ..
-rm -r $TDIR
+#rm -r $TDIR
 #rm msh.c 
 
