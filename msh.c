@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     char *cmd_line = NULL;
     char *cmd_lines[10];
     const char storeAcc [100];
-    //setenv(const char *Acc, storeAcc,1);
+    setenv(const char *Acc, storeAcc,1);
 
     if (!isatty(STDIN_FILENO)) {
         cmd_line = (char*)malloc(100);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
        
         // Mycalc function
         if(strcmp(**argvv, "mycalc") == 0 && command_counter == 1) {
-            mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]));
+            mycalc(atoi(argvv[0][1]), argvv[0][2], atoi(argvv[0][3]), 0);
             continue;
         }
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
             }
 
             mycp(argvv[0][1], argvv[0][2]);
-            
+            continue;
         }
 
         //Simple process
@@ -222,22 +222,22 @@ int ioRedirect(char filev[3][64]){
 //Self implemented functions
 
 void mycalc(int operand1, char *operator, int operand2){
-    // int value = atoi(getenv("Acc"));
-    // int result;
-    // if (strcmp(operator, "mod") == 0){
-    //     result = operand1 % operand2;
-    //     int aux = operand1/operand2;
-    //     printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
-    // } else if(strcmp(operator,"add")==0){
-    //     result = operand1 + operand2;
-    //     value += result;
-    //     sprintf(Acc,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
+    int value=atoi(getenv(Acc));
+    int result;
+    if (strcmp(operator, "mod") == 0){
+        result = operand1 % operand2;
+        int aux = operand1/operand2;
+        printf("[OK] %d mod %d = %d * %d + %d\n",operand1,operand2,operand2,aux,result);
+    } else if(strcmp(operator,"add")==0){
+        result = operand1 + operand2;
+        value += result;
+        sprintf(Acc,"[OK] %d + %d = %d; Acc %d\n", operand1, operand2, result, value);
 
 
-    // }else{
-    //     fprintf(Acc, stderr, "[ERROR] Error opening the copied file");
+    }else{
+        fprintf(stderr, "[ERROR] Error opening the copied file");
 
-    // }
+    }
 
 }
 
