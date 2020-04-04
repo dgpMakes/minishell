@@ -102,6 +102,7 @@ int main(int argc, char* argv[])
             perror("Error");
             continue;
         } 
+
         if (command_counter > MAX_COMMANDS){
             printf("Error: Numero máximo de comandos es %d \n", MAX_COMMANDS);
             continue;
@@ -159,7 +160,7 @@ int create_pipes(char ***argvv, char filev[3][64], int in_background, int comman
     //Start the recursive pipe function
     recursive_pipe(argvv, 0, command_counter, 0);
 
-    //If in background, wait for every process in the pipe to finish
+    //If not in background, wait for every process in the pipe to finish
     if(in_background == 0){
         while(wait(NULL) > 0);
     }
@@ -196,10 +197,12 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe
             
         //The first process
         if(currentPipe == 0){
+
             close(STDOUT_FILENO);
             dup(pip[1]);
             close(pip[1]);
             close(pip[0]);
+            
         }
         //The last process
         else if(currentPipe == totalPipes - 1){
