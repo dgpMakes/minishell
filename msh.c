@@ -21,13 +21,13 @@ void sigchld_handler(int param);
 void sigint_handler(int param);
 
 //Built-in shell functions
-int mycp(char *source_string, char *destination_string);
+void mycp(char *source_string, char *destination_string);
 void mycalc(int operand1, char *operator, int operand2);
 
 //Functions to organise code
-int io_redirect(char filev[3][64]);
-int create_simple_process(char ***argvv, char filev[3][64], int in_background);
-int create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter);
+void io_redirect(char filev[3][64]);
+void create_simple_process(char ***argvv, char filev[3][64], int in_background);
+void create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter);
 void recursive_pipe(char ***argvv, int currentPipe, int totalPipes,  int nextPipe);
 
 //Helper function
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
 //Functions
 
-int create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter){
+void create_pipes(char ***argvv, char filev[3][64], int in_background, int command_counter){
 
     //Create a copy of the file descriptors to later raet
     int stdi = dup(0);
@@ -178,7 +178,6 @@ int create_pipes(char ***argvv, char filev[3][64], int in_background, int comman
     close(stdo);
     close(stde);
 
-    return 1;  
 }
 
 void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe){
@@ -251,7 +250,7 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe
 }
 
 
-int create_simple_process(char ***argvv, char filev[3][64], int in_background) {
+void create_simple_process(char ***argvv, char filev[3][64], int in_background) {
 
     //Create a pipe for the child
     int pid = fork();
@@ -283,7 +282,7 @@ int create_simple_process(char ***argvv, char filev[3][64], int in_background) {
 }
 
 
-int io_redirect(char filev[3][64]) {
+void io_redirect(char filev[3][64]) {
 
     /*For stdin*/
     if(strcmp(filev[0], "0") != 0) {
@@ -362,7 +361,7 @@ void mycalc(int operand1, char *operator, int operand2) {
 }
 
 
-int mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
+void mycp(char *source_string, char *destination_string)  // [1] original archive, [2] to paste in file (destination)
 {
     char count;  /*to read entire path*/
     struct stat prove_structure; /*to prove the structure of the given arguments*/
@@ -373,7 +372,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         if(prove_structure.st_mode & S_IFDIR)
         {
             fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-            return -1;
+            return;
         }
     }
 
@@ -382,7 +381,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
         if(prove_structure.st_mode & S_IFDIR)
         {
             fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
-            return -1;
+            return;
         }
     }
 
@@ -392,21 +391,21 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     if (source_descriptor == -1)
     { 
         fprintf(stderr, "[ERROR] Error opening original file: %s\n", strerror(errno));
-        return -1;
+        return;
     }
 
     /*opens the requested file*/
     FILE* source_file = fopen(source_string, "r"); //we open in mode reading and check it is correct
     if(source_file == NULL){
         fprintf(stdout, "[ERROR] Error opening original file: %s\n", strerror(errno));
-        return -1;
+        return;
     }
 
     /*creates the new file*/
     FILE* destination_file = fopen(destination_string, "w"); //we create the new file and check it is correct
     if(destination_file == NULL){
         fprintf(stdout, "[ERROR] Error opening copied file: %s\n", strerror(errno));
-        return -1;
+        return;
     }
 
 	while( ( count = fgetc(source_file) ) != EOF )
@@ -416,7 +415,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     fclose(source_file);
     fclose(destination_file);
     close(source_descriptor);
-	return 0;
+
 }
 
 
