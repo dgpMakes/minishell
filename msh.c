@@ -367,7 +367,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
             return -1;
         }
     }
-
+/*
    if(stat(destination_string, &prove_structure) == 0)
    {
         if(prove_structure.st_mode & S_IFDIR)
@@ -375,7 +375,7 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
             fprintf(stdout, "[ERROR] The structure of the command is mycp <original file> <copied file>\n");
             return -1;
         }
-    }
+    }*/
 
     source_descriptor = open(source_string, O_RDONLY); /*opens file and addresses it a descriptor*/
                 
