@@ -210,6 +210,7 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe
         else if(currentPipe == totalPipes - 1){
             close(STDIN_FILENO);
             dup(nextPipe);
+            close(nextPipe);
 
             //No need to create more pipes
             close(pip[0]);
@@ -219,7 +220,7 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe
         //The general case
         else {
 
-            //Stablish output using the created pipe
+            //Connect the stdout to the created pipe pip
             close(STDOUT_FILENO);
             dup(pip[1]);
             close(pip[1]);
