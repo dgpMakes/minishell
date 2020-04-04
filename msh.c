@@ -2,17 +2,17 @@
 #include <stddef.h>	
 #include <sys/types.h>/* Header file for system call open */
 #include <sys/stat.h> /* Defines the structure of data returned by functions fsat(), lstat() and stat() */
-#include <fcntl.h> /* Manipulate file descriptor */
+#include <fcntl.h>
 #include <wait.h> 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> /* Header file for system calls read, write y close */
+#include <unistd.h> 
 #include <signal.h>
 
 /* Error handling libraries */
 #include <errno.h>
-#include <string.h> /* Used for strerror(errno) and strcmp()*/
+#include <string.h>
 
 #define MAX_COMMANDS 8
 
@@ -251,25 +251,31 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe
 int create_simple_process(char ***argvv, char filev[3][64], int in_background) {
 
     //Create a pipe for the child
-    int pid;
-    switch(pid = fork()){
-        case 0:
-            //The child
-            io_redirect(filev);
-            if(execvp(**argvv, *argvv) == -1)
-            {
-                perror("Error executing fork");
-            }
-            break;
-        case -1:
-            //Error
-            perror("Error creating fork");
-            break;
-        default:
-            //Parent
-            if(in_background) printf("[%i]\n",pid);
-            if(!in_background) wait(&pid);
+    int pid = fork();
+    if(pid == 0) {
+
+        //The child
+        //File redirection
+        io_redirect(filev);
+        //Replace child image
+        if(execvp(**argvv, *argvv) == -1)
+            perror("Error executing fork");
+
     }
+    else if(pid == ) {
+        
+        //Error case
+        perror("Error creating fork");
+
+    } 
+    else {
+
+        //The parent
+        if(in_background) printf("[%i]\n",pid);
+        if(!in_background) wait(&pid);
+
+    }
+
 
 }
 
