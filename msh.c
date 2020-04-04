@@ -404,9 +404,9 @@ int mycp(char *source_string, char *destination_string)  // [1] original archive
     fputc(count, destination_file);
  
     printf("[OK] Copy has been successful between %s and %s\n", source_string, destination_string);
- 
     fclose(source_file);
     fclose(destination_file);
+    close(source_descriptor);
 	return 0;
 }
 
