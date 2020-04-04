@@ -70,6 +70,9 @@ int main(int argc, char* argv[])
     int num_commands;
     char ***argvv = NULL; 
 
+    //Welcome message
+    welcome_message();
+    
     //Main while
 	while (1) 
 	{
@@ -181,10 +184,11 @@ int create_pipes(char ***argvv, char filev[3][64], int in_background, int comman
 
 void recursive_pipe(char ***argvv, int currentPipe, int totalPipes, int nextPipe){
 
+    //The current call creates a pipe for the next one
     int pip[2];
     pipe(pip);
 
-    //Base case
+    //Base case in recursion
     if(currentPipe == totalPipes){
         close(nextPipe);
         close(pip[0]);
@@ -422,18 +426,29 @@ int count_command_arguments(char **argvv){//[asdf],[asdf]
 
 //Signal handler functions
 void sigint_handler(int param) {
+
 	printf("****  Exiting MSH ****\n");
-	//signal(SIGINT, siginthandler);
     exit(0);
+    
 }
 
 void sigchld_handler(int param) {
-    //Wait for any child
-    //int pid = wait(NULL);
-    //printf("Process in background with pid %i just finished \n", pid);
-	//write(STDOUT_FILENO, "MSH>>", strlen("MSH>>"));
+    /*Wait for any child that has finished 
+    and prevent them from turning into zombies*/
+    wait(NULL);
 }
 
+void welcome_message(){
+
+    printf("               _     \n");
+    printf("              | |    \n");
+    printf(" _ __ ___  ___| |__  \n");
+    printf("| '_ ` _ \/ __| '_ \ \n");
+    printf("| | | | | \__ \ | | |\n");
+    printf("|_| |_| |_|___/_| |_|\n");
+    printf("                     \n");
+
+}
 
 //Unused function
 /**
