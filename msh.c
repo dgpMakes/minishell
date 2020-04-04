@@ -33,6 +33,7 @@ void recursive_pipe(char ***argvv, int currentPipe, int totalPipes,  int nextPip
 //Helper function
 int count_command_arguments(char **argvv);
 
+
 // Redirection files
 char filev[3][64];
 
@@ -70,8 +71,6 @@ int main(int argc, char* argv[])
     int num_commands;
     char ***argvv = NULL; 
 
-    //Welcome message
-    welcome_message();
     
     //Main while
 	while (1) 
@@ -266,7 +265,7 @@ int create_simple_process(char ***argvv, char filev[3][64], int in_background) {
             perror("Error executing fork");
 
     }
-    else if(pid == ) {
+    else if(pid == -1) {
         
         //Error case
         perror("Error creating fork");
@@ -444,17 +443,6 @@ void sigchld_handler(int param) {
     wait(NULL);
 }
 
-void welcome_message(){
-
-    printf("               _     \n");
-    printf("              | |    \n");
-    printf(" _ __ ___  ___| |__  \n");
-    printf("| '_ ` _ \/ __| '_ \ \n");
-    printf("| | | | | \__ \ | | |\n");
-    printf("|_| |_| |_|___/_| |_|\n");
-    printf("                     \n");
-
-}
 
 //Unused function
 /**
