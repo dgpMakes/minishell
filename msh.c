@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         } 
 
         if (command_counter > MAX_COMMANDS){
-            printf("Error: Numero máximo de comandos es %d \n", MAX_COMMANDS);
+            printf("Error: Maximum number of commands is %d \n", MAX_COMMANDS);
             continue;
         }
        
