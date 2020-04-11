@@ -1,2 +1,2 @@
 # minishell
- Creating a mini shell in C
+ Creating a mini shell in C.
